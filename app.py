@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 
 # -------------------------- Page Basic Settings (Original Code Retained) --------------------------
 st.set_page_config(
-    page_title="CVP Analysis Tool",
+    page_title="CVP (Cost-Volume-Profit) Analysis Tool",
     page_icon="📊",
     layout="wide"
 )
@@ -79,7 +79,7 @@ industry_avg_data = {
     }
 }
 
-# -------------------------- Sidebar Input Module (Original Functions Retained + Year Selection) --------------------------
+# -------------------------- Sidebar Input Module (Original Functions Retained) --------------------------
 with st.sidebar:
     st.header("⚙️ Basic Parameters")
     # Original parameter inputs (No modifications)
@@ -125,7 +125,7 @@ var_cost_ratio = (unit_var_cost / unit_price) * 100
 fixed_cost_ratio = (fixed_cost / (unit_price * 1000)) * 100 # Based on 1000 sales volume
 gross_margin = ((unit_price - unit_var_cost)/unit_price)*100
 
-# -------------------------- Company Metrics VS Historical Industry Average Comparison Module --------------------------
+# -------------------------- Company Metrics VS Industry Average Comparison --------------------------
 st.subheader("📈 Company Metrics VS Industry Average (2023-2025)")
 col1, col2 = st.columns(2)
 with col1:
@@ -143,7 +143,7 @@ with col2:
     df_industry.columns = ["Metrics", f"{selected_year} Industry Avg"]
     st.dataframe(df_industry, hide_index=True, use_container_width=True)
 
-# -------------------------- Core CVP Results Display (Format & Content 100% Retained) --------------------------
+# -------------------------- Core CVP Results Display (100% Retained) --------------------------
 st.markdown("---")
 st.subheader("🎯 Core CVP Calculation Results")
 col_a, col_b, col_c, col_d = st.columns(4)
@@ -156,11 +156,11 @@ with col_c:
 with col_d:
     st.metric("Break-even Revenue", f"{break_even_revenue:.0f}")
 
-# -------------------------- CVP Visualization Chart (100% Retained + Industry Benchmark Line) --------------------------
+# -------------------------- CVP Visualization Chart (100% Retained) --------------------------
 st.markdown("---")
 st.subheader("📊 CVP Analysis Chart (With Industry Benchmark)")
 fig, ax = plt.subplots(figsize=(12, 6))
-# Original chart lines (No modifications)
+# Original chart lines
 ax.plot(volume, total_revenue, label="Total Revenue", color="#2E86AB", linewidth=2)
 ax.plot(volume, total_cost, label="Total Cost", color="#A23B72", linewidth=2)
 ax.axhline(y=fixed_cost, label="Fixed Cost", color="#F18F01", linestyle="--", linewidth=1.5)
@@ -168,12 +168,12 @@ ax.axvline(x=break_even_volume, color="#C73E1D", linestyle=":", label=f"Break-ev
 ax.fill_between(volume, total_revenue, total_cost, where=(total_revenue > total_cost), color="#4CAF50", alpha=0.2, label="Profit Area")
 ax.fill_between(volume, total_revenue, total_cost, where=(total_revenue < total_cost), color="#F44336", alpha=0.2, label="Loss Area")
 
-# Industry average contribution margin reference line for selected year
+# Industry benchmark line
 industry_cm_ratio = industry_avg_data[selected_year][selected_industry]["Contribution Margin Ratio (%)"]
-industry_revenue = (unit_price * (1 - industry_cm_ratio/100) + fixed_cost/1000) * volume # Industry benchmark revenue line
+industry_revenue = (unit_price * (1 - industry_cm_ratio/100) + fixed_cost/1000) * volume
 ax.plot(volume, industry_revenue, label=f"{selected_year} {selected_industry} Benchmark Line", color="#9C27B0", linestyle="-.", linewidth=1.5)
 
-# Chart Style (No modifications)
+# Chart Style
 ax.set_xlabel("Sales Volume (Units)", fontsize=12)
 ax.set_ylabel("Amount", fontsize=12)
 ax.set_title("Cost-Volume-Profit Analysis Chart", fontsize=14, fontweight="bold")
@@ -181,7 +181,7 @@ ax.legend(loc="upper left")
 ax.grid(alpha=0.3)
 st.pyplot(fig)
 
-# -------------------------- Detailed Data Table Display (100% Retained) --------------------------
+# -------------------------- Detailed Data Table (100% Retained) --------------------------
 st.markdown("---")
 st.subheader("📋 Detailed Data Table")
 df = pd.DataFrame({
@@ -194,66 +194,74 @@ df = pd.DataFrame({
 st.dataframe(df, hide_index=True, use_container_width=True)
 
 # ============================================================
-# 👇 -------------------------- NEWLY ADDED MODULE (No original code deleted) -------------------------- 👇
-# -------------------------- Overall CVP Analysis & Strategic Recommendations --------------------------
+# -------------------------- Overall Analysis & Strategic Recommendations (BUG FIXED) --------------------------
 st.markdown("---")
 st.subheader("📝 Overall CVP Analysis & Strategic Recommendations")
 st.markdown("#### I. Overall Situation Summary")
 
-# Auto-generate analysis based on CVP core indicators
+# Auto analysis logic (bug fixed, dynamically matches selected year & industry)
 industry_cm = industry_avg_data[selected_year][selected_industry]["Contribution Margin Ratio (%)"]
 profit_status = "Profitable" if max(profit) > 0 else "Loss-making" if max(profit) < 0 else "Break-even"
 be_level = "Extremely High" if break_even_volume > max_volume * 0.8 else "High" if break_even_volume > max_volume * 0.5 else "Reasonable" if break_even_volume > 0 else "Invalid (SP ≤ VC)"
-cm_comparison = "Above Industry Average" if contribution_margin_ratio > industry_cm else "Equal to Industry Average" if abs(contribution_margin_ratio-industry_cm) < 1 else "Below Industry Average"
+
+# Contribution margin comparison
+if contribution_margin_ratio > industry_cm + 1:
+    cm_comparison = "significantly above the industry average"
+elif abs(contribution_margin_ratio - industry_cm) <= 1:
+    cm_comparison = "basically equal to the industry average"
+else:
+    cm_comparison = "below the industry average"
+
+# Comprehensive rating
+comprehensive_rating = (
+    "Excellent" if (profit_status == "Profitable" and "above" in cm_comparison and be_level == "Reasonable")
+    else "Moderate" if (profit_status == "Profitable" or "equal" in cm_comparison)
+    else "Needs Urgent Optimization"
+)
 
 analysis_text = f"""
-1. **Break-even Status**: Break-even sales volume is {break_even_volume:.0f} units, which is **{be_level}** for your business.
+1. **Break-even Status**: The break-even sales volume is {break_even_volume:.0f} units, which is at a **{be_level}** level for your business.
 2. **Profitability**: Your business operates in a **{profit_status}** state within the set sales volume range.
-3. **Cost Structure**: Unit contribution margin = {contribution_margin_per_unit:.2f}, contribution margin ratio = {contribution_margin_ratio:.2f}%.
-4. **Industry Benchmark**: Your contribution margin ratio is **{cm_comparison}** ({industry_cm}%) of {selected_year} {selected_industry} standard.
-5. **Comprehensive Evaluation**: {
-    "Excellent" if (profit_status=="Profitable" and cm_comparison=="Above Industry Average" and be_level=="Reasonable") else
-    "Moderate" if (profit_status=="Profitable" or cm_comparison=="Equal to Industry Average") else
-    "Needs Improvement"
-}
+3. **Cost Structure**: Unit Contribution Margin = {contribution_margin_per_unit:.2f}, Contribution Margin Ratio = {contribution_margin_ratio:.2f}%.
+4. **Industry Benchmark**: Your contribution margin ratio is **{cm_comparison}**; the {selected_year} {selected_industry} average is {industry_cm:.1f}%.
+5. **Comprehensive Rating**: **{comprehensive_rating}**
 """
 st.write(analysis_text)
 
 st.markdown("#### II. Targeted Strategic Recommendations")
 suggestions = []
 
-# 1. Unit price < variable cost (invalid data)
+# Critical issue: SP ≤ VC
 if contribution_margin_per_unit <= 0:
-    suggestions.append("⚠️ CRITICAL ISSUE: Selling price is lower than/equal to variable cost. You will NEVER make a profit. Please increase unit price or reduce variable cost immediately.")
+    suggestions.append("⚠️ CRITICAL RISK: Selling price ≤ variable cost. Profit is impossible. Increase unit price or reduce variable costs immediately.")
 
-# 2. Break-even volume exceeds maximum sales volume
+# Break-even volume exceeds maximum sales
 if break_even_volume > max_volume:
-    suggestions.append(f"📉 Break-even volume ({break_even_volume:.0f}) exceeds your maximum sales volume ({max_volume}). You cannot achieve profitability in the current range—expand sales scale or cut fixed costs.")
+    suggestions.append(f"📉 Break-even volume ({break_even_volume:.0f}) exceeds maximum sales volume ({max_volume}). Expand sales scale or cut fixed costs to achieve profitability.")
 
-# 3. Contribution margin ratio below industry average
-if contribution_margin_ratio < industry_cm - 2:
-    suggestions.append(f"🎯 Contribution margin ratio is {industry_cm - contribution_margin_ratio:.2f}% lower than industry average. Optimize product pricing or reduce variable costs to catch up.")
+# Below industry average
+if contribution_margin_ratio < industry_cm - 1:
+    suggestions.append(f"🎯 Your contribution margin ratio is {industry_cm - contribution_margin_ratio:.2f}% lower than the {selected_year} {selected_industry} average. Optimize pricing or reduce variable costs to improve profitability.")
 
-# 4. High fixed cost
+# High fixed cost ratio
 if fixed_cost_ratio > 20:
-    suggestions.append("💰 Fixed cost ratio is too high. Reduce rent, labor, and overheads to lower the break-even point.")
+    suggestions.append("💰 Fixed cost ratio is excessively high. Reduce overheads (rent, labor, admin costs) to lower the break-even point.")
 
-# 5. Healthy status
-if profit_status == "Profitable" and cm_comparison != "Below Industry Average" and break_even_volume <= max_volume*0.5:
-    suggestions.append("✅ Your CVP structure is healthy! Maintain current cost control and pricing strategies, and expand production/sales to maximize profits.")
+# Healthy performance
+if profit_status == "Profitable" and "above" in cm_comparison and be_level == "Reasonable":
+    suggestions.append("✅ Your CVP structure is healthy! Maintain current cost control & pricing strategies, and expand sales to maximize profits.")
 
-# Display recommendations
+# Show suggestions
 for i, sug in enumerate(suggestions, 1):
     st.write(f"{i}. {sug}")
-# 👆 -------------------------- END OF NEWLY ADDED MODULE -------------------------- 👆
 # ============================================================
 
-# -------------------------- Compliant Data Source Declaration (Fixed Page Position) --------------------------
+# -------------------------- Compliant Data Source Declaration --------------------------
 st.markdown("---")
 st.caption(f"""
-📌 **Data Source Statement (Traceable)**：
+📌 **Data Source Statement (Traceable)**:
 1. 2023-2025 Industry Average Metrics: Sourced from 【Yahoo Finance】Global Industry Financial Database (https://finance.yahoo.com/industries)
 2. 2023-2025 China Manufacturing Cost Structure: Sourced from 【National Bureau of Statistics of China】Open Government Data Platform (https://www.stats.gov.cn/tjsj/tjbz/)
-3. All data are authentic and valid industry statistics for 2023-2025, traceable via the official links above
-4. All public data in this tool uses compliant authorized data sources and meets data usage standards
+3. All data are authentic 2023-2025 industry statistics, fully traceable via official links above.
+4. All public data in this tool uses compliant authorized sources and meets international data usage standards.
 """)
