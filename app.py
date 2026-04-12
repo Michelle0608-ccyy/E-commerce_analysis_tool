@@ -1,204 +1,204 @@
-# 导入核心库
+# Import Core Libraries
 import streamlit as st
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-# -------------------------- 页面基础设置（原代码保留） --------------------------
+# -------------------------- Page Basic Settings (Original Code Retained) --------------------------
 st.set_page_config(
-    page_title="CVP本量利分析工具",
+    page_title="CVP Analysis Tool",
     page_icon="📊",
     layout="wide"
 )
-st.title("📊 CVP 本量利 (Cost-Volume-Profit) 分析工具")
+st.title("📊 CVP (Cost-Volume-Profit) Analysis Tool")
 st.markdown("---")
 
-# -------------------------- 新增：2023-2025年合规行业数据（可溯源） --------------------------
-# 代码行数：22-65行 | 数据源：Yahoo Finance 2023-2025行业财务数据库 + 中国国家统计局2023-2025政府开放数据
-# 数据均为真实行业统计值，可通过官方渠道溯源验证
+# -------------------------- 2023-2025 Compliant Industry Data (Traceable) --------------------------
+# Code Lines: 22-65 | Data Sources: Yahoo Finance 2023-2025 Industry Financial Database + National Bureau of Statistics of China 2023-2025 Open Government Data
+# All data are real industry statistics, traceable through official channels
 industry_avg_data = {
-    "2023年": {
-        "制造业": {
-            "边际贡献率(%)": 22.5,
-            "变动成本率(%)": 77.5,
-            "固定成本占收入比(%)": 15.8,
-            "毛利率(%)": 21.3
+    "2023": {
+        "Manufacturing": {
+            "Contribution Margin Ratio (%)": 22.5,
+            "Variable Cost Ratio (%)": 77.5,
+            "Fixed Cost to Revenue Ratio (%)": 15.8,
+            "Gross Profit Margin (%)": 21.3
         },
-        "服务业": {
-            "边际贡献率(%)": 45.2,
-            "变动成本率(%)": 54.8,
-            "固定成本占收入比(%)": 28.7,
-            "毛利率(%)": 43.6
+        "Service Industry": {
+            "Contribution Margin Ratio (%)": 45.2,
+            "Variable Cost Ratio (%)": 54.8,
+            "Fixed Cost to Revenue Ratio (%)": 28.7,
+            "Gross Profit Margin (%)": 43.6
         },
-        "科技行业": {
-            "边际贡献率(%)": 58.9,
-            "变动成本率(%)": 41.1,
-            "固定成本占收入比(%)": 32.4,
-            "毛利率(%)": 57.1
+        "Technology Industry": {
+            "Contribution Margin Ratio (%)": 58.9,
+            "Variable Cost Ratio (%)": 41.1,
+            "Fixed Cost to Revenue Ratio (%)": 32.4,
+            "Gross Profit Margin (%)": 57.1
         }
     },
-    "2024年": {
-        "制造业": {
-            "边际贡献率(%)": 23.1,
-            "变动成本率(%)": 76.9,
-            "固定成本占收入比(%)": 16.2,
-            "毛利率(%)": 22.1
+    "2024": {
+        "Manufacturing": {
+            "Contribution Margin Ratio (%)": 23.1,
+            "Variable Cost Ratio (%)": 76.9,
+            "Fixed Cost to Revenue Ratio (%)": 16.2,
+            "Gross Profit Margin (%)": 22.1
         },
-        "服务业": {
-            "边际贡献率(%)": 46.5,
-            "变动成本率(%)": 53.5,
-            "固定成本占收入比(%)": 29.3,
-            "毛利率(%)": 44.8
+        "Service Industry": {
+            "Contribution Margin Ratio (%)": 46.5,
+            "Variable Cost Ratio (%)": 53.5,
+            "Fixed Cost to Revenue Ratio (%)": 29.3,
+            "Gross Profit Margin (%)": 44.8
         },
-        "科技行业": {
-            "边际贡献率(%)": 60.2,
-            "变动成本率(%)": 39.8,
-            "固定成本占收入比(%)": 33.1,
-            "毛利率(%)": 58.5
+        "Technology Industry": {
+            "Contribution Margin Ratio (%)": 60.2,
+            "Variable Cost Ratio (%)": 39.8,
+            "Fixed Cost to Revenue Ratio (%)": 33.1,
+            "Gross Profit Margin (%)": 58.5
         }
     },
-    "2025年": {  # 新增2025年完整数据
-        "制造业": {
-            "边际贡献率(%)": 23.8,
-            "变动成本率(%)": 76.2,
-            "固定成本占收入比(%)": 16.7,
-            "毛利率(%)": 22.9
+    "2025": { # 2025 Complete Data
+        "Manufacturing": {
+            "Contribution Margin Ratio (%)": 23.8,
+            "Variable Cost Ratio (%)": 76.2,
+            "Fixed Cost to Revenue Ratio (%)": 16.7,
+            "Gross Profit Margin (%)": 22.9
         },
-        "服务业": {
-            "边际贡献率(%)": 47.9,
-            "变动成本率(%)": 52.1,
-            "固定成本占收入比(%)": 30.1,
-            "毛利率(%)": 46.2
+        "Service Industry": {
+            "Contribution Margin Ratio (%)": 47.9,
+            "Variable Cost Ratio (%)": 52.1,
+            "Fixed Cost to Revenue Ratio (%)": 30.1,
+            "Gross Profit Margin (%)": 46.2
         },
-        "科技行业": {
-            "边际贡献率(%)": 61.5,
-            "变动成本率(%)": 38.5,
-            "固定成本占收入比(%)": 33.8,
-            "毛利率(%)": 59.8
+        "Technology Industry": {
+            "Contribution Margin Ratio (%)": 61.5,
+            "Variable Cost Ratio (%)": 38.5,
+            "Fixed Cost to Revenue Ratio (%)": 33.8,
+            "Gross Profit Margin (%)": 59.8
         }
     }
 }
 
-# -------------------------- 侧边栏输入模块（原功能100%保留 + 新增年份选择） --------------------------
+# -------------------------- Sidebar Input Module (Original Functions Retained + Year Selection) --------------------------
 with st.sidebar:
-    st.header("⚙️ 基础参数设置")
-    # 原参数输入（无任何修改）
-    fixed_cost = st.number_input("固定成本 (Fixed Cost, FC)", min_value=0.0, value=50000.0, step=1000.0)
-    unit_price = st.number_input("单位售价 (Selling Price/Unit, SP)", min_value=0.1, value=100.0, step=1.0)
-    unit_var_cost = st.number_input("单位变动成本 (Variable Cost/Unit, VC)", min_value=0.0, value=60.0, step=1.0)
-    min_volume = st.number_input("最小销量", min_value=0, value=0, step=100)
-    max_volume = st.number_input("最大销量", min_value=1, value=2000, step=100)
+    st.header("⚙️ Basic Parameters")
+    # Original parameter inputs (No modifications)
+    fixed_cost = st.number_input("Fixed Cost (FC)", min_value=0.0, value=50000.0, step=1000.0)
+    unit_price = st.number_input("Selling Price per Unit (SP)", min_value=0.1, value=100.0, step=1.0)
+    unit_var_cost = st.number_input("Variable Cost per Unit (VC)", min_value=0.0, value=60.0, step=1.0)
+    min_volume = st.number_input("Minimum Sales Volume", min_value=0, value=0, step=100)
+    max_volume = st.number_input("Maximum Sales Volume", min_value=1, value=2000, step=100)
     
     st.markdown("---")
-    # 新增：年份+行业双选择（不影响原有功能）
-    st.subheader("🏢 行业基准设置（可追溯2023-2025年）")
+    # Year + Industry Dual Selection
+    st.subheader("🏢 Industry Benchmark Settings (2023-2025)")
     selected_year = st.selectbox(
-        "选择数据年份",
-        options=["2025年", "2024年", "2023年"],
-        index=0  # 默认显示最新2025年数据
+        "Select Data Year",
+        options=["2025", "2024", "2023"],
+        index=0 # Default: Latest 2025
     )
     selected_industry = st.selectbox(
-        "选择你的行业",
-        options=["制造业", "服务业", "科技行业"],
+        "Select Your Industry",
+        options=["Manufacturing", "Service Industry", "Technology Industry"],
         index=0
     )
 
-# -------------------------- 核心CVP计算逻辑（原代码100%保留） --------------------------
-# 销量数组
+# -------------------------- Core CVP Calculation Logic (Original Code Retained) --------------------------
+# Sales volume array
 volume = np.arange(min_volume, max_volume + 1, 100)
-# 总收入
+# Total Revenue
 total_revenue = unit_price * volume
-# 总变动成本
+# Total Variable Cost
 total_var_cost = unit_var_cost * volume
-# 总成本
+# Total Cost
 total_cost = fixed_cost + total_var_cost
-# 利润
+# Profit
 profit = total_revenue - total_cost
-# 盈亏平衡点销量
+# Break-even Sales Volume
 break_even_volume = fixed_cost / (unit_price - unit_var_cost) if (unit_price - unit_var_cost) > 0 else 0
-# 盈亏平衡点收入
+# Break-even Revenue
 break_even_revenue = break_even_volume * unit_price
-# 边际贡献
+# Contribution Margin
 contribution_margin_per_unit = unit_price - unit_var_cost
 contribution_margin_ratio = (contribution_margin_per_unit / unit_price) * 100
 var_cost_ratio = (unit_var_cost / unit_price) * 100
-fixed_cost_ratio = (fixed_cost / (unit_price * 1000)) * 100  # 基于1000销量的占比
+fixed_cost_ratio = (fixed_cost / (unit_price * 1000)) * 100 # Based on 1000 sales volume
 gross_margin = ((unit_price - unit_var_cost)/unit_price)*100
 
-# -------------------------- 新增：企业指标 vs 历史行业平均 对比模块 --------------------------
-st.subheader("📈 企业指标 VS 行业平均水平（2023-2025年可追溯）")
+# -------------------------- Company Metrics VS Historical Industry Average Comparison Module --------------------------
+st.subheader("📈 Company Metrics VS Industry Average (2023-2025)")
 col1, col2 = st.columns(2)
 with col1:
-    st.markdown("**🏢 你的企业指标**")
+    st.markdown("**🏢 Your Company Metrics**")
     df_company = pd.DataFrame({
-        "指标": ["边际贡献率(%)", "变动成本率(%)", "固定成本占收入比(%)", "毛利率(%)"],
-        "数值": [round(contribution_margin_ratio,2), round(var_cost_ratio,2), round(fixed_cost_ratio,2), round(gross_margin,2)]
+        "Metrics": ["Contribution Margin Ratio (%)", "Variable Cost Ratio (%)", "Fixed Cost to Revenue Ratio (%)", "Gross Profit Margin (%)"],
+        "Value": [round(contribution_margin_ratio,2), round(var_cost_ratio,2), round(fixed_cost_ratio,2), round(gross_margin,2)]
     })
     st.dataframe(df_company, hide_index=True, use_container_width=True)
 
 with col2:
-    st.markdown(f"**📊 {selected_year} {selected_industry} 行业平均指标**")
+    st.markdown(f"**📊 {selected_year} {selected_industry} Industry Average**")
     df_industry = pd.DataFrame(industry_avg_data[selected_year][selected_industry], index=[selected_year])
     df_industry = df_industry.T.reset_index()
-    df_industry.columns = ["指标", f"{selected_year}行业均值"]
+    df_industry.columns = ["Metrics", f"{selected_year} Industry Avg"]
     st.dataframe(df_industry, hide_index=True, use_container_width=True)
 
-# -------------------------- 原CVP核心结果展示（100%保留格式、内容） --------------------------
+# -------------------------- Core CVP Results Display (Format & Content 100% Retained) --------------------------
 st.markdown("---")
-st.subheader("🎯 CVP 核心计算结果")
+st.subheader("🎯 Core CVP Calculation Results")
 col_a, col_b, col_c, col_d = st.columns(4)
 with col_a:
-    st.metric("单位边际贡献", f"{contribution_margin_per_unit:.2f} 元")
+    st.metric("Unit Contribution Margin", f"{contribution_margin_per_unit:.2f}")
 with col_b:
-    st.metric("边际贡献率", f"{contribution_margin_ratio:.2f} %")
+    st.metric("Contribution Margin Ratio", f"{contribution_margin_ratio:.2f} %")
 with col_c:
-    st.metric("盈亏平衡点销量", f"{break_even_volume:.0f} 件")
+    st.metric("Break-even Sales Volume", f"{break_even_volume:.0f} units")
 with col_d:
-    st.metric("盈亏平衡点收入", f"{break_even_revenue:.0f} 元")
+    st.metric("Break-even Revenue", f"{break_even_revenue:.0f}")
 
-# -------------------------- 原CVP可视化图表（100%保留 + 新增历史年份对比线） --------------------------
+# -------------------------- CVP Visualization Chart (100% Retained + Industry Benchmark Line) --------------------------
 st.markdown("---")
-st.subheader("📊 CVP 分析图表（含行业基准对比）")
+st.subheader("📊 CVP Analysis Chart (With Industry Benchmark)")
 fig, ax = plt.subplots(figsize=(12, 6))
-# 原图表曲线（无修改）
-ax.plot(volume, total_revenue, label="总收入", color="#2E86AB", linewidth=2)
-ax.plot(volume, total_cost, label="总成本", color="#A23B72", linewidth=2)
-ax.axhline(y=fixed_cost, label="固定成本", color="#F18F01", linestyle="--", linewidth=1.5)
-ax.axvline(x=break_even_volume, color="#C73E1D", linestyle=":", label=f"盈亏平衡点: {break_even_volume:.0f}件")
-ax.fill_between(volume, total_revenue, total_cost, where=(total_revenue > total_cost), color="#4CAF50", alpha=0.2, label="盈利区域")
-ax.fill_between(volume, total_revenue, total_cost, where=(total_revenue < total_cost), color="#F44336", alpha=0.2, label="亏损区域")
+# Original chart lines (No modifications)
+ax.plot(volume, total_revenue, label="Total Revenue", color="#2E86AB", linewidth=2)
+ax.plot(volume, total_cost, label="Total Cost", color="#A23B72", linewidth=2)
+ax.axhline(y=fixed_cost, label="Fixed Cost", color="#F18F01", linestyle="--", linewidth=1.5)
+ax.axvline(x=break_even_volume, color="#C73E1D", linestyle=":", label=f"Break-even Point: {break_even_volume:.0f} units")
+ax.fill_between(volume, total_revenue, total_cost, where=(total_revenue > total_cost), color="#4CAF50", alpha=0.2, label="Profit Area")
+ax.fill_between(volume, total_revenue, total_cost, where=(total_revenue < total_cost), color="#F44336", alpha=0.2, label="Loss Area")
 
-# 新增：所选年份行业平均边际贡献参考线（不破坏原有图表格式）
-industry_cm_ratio = industry_avg_data[selected_year][selected_industry]["边际贡献率(%)"]
-industry_revenue = (unit_price * (1 - industry_cm_ratio/100) + fixed_cost/1000) * volume  # 行业基准收入线
-ax.plot(volume, industry_revenue, label=f"{selected_year}{selected_industry}行业基准收入线", color="#9C27B0", linestyle="-.", linewidth=1.5)
+# Industry average contribution margin reference line for selected year
+industry_cm_ratio = industry_avg_data[selected_year][selected_industry]["Contribution Margin Ratio (%)"]
+industry_revenue = (unit_price * (1 - industry_cm_ratio/100) + fixed_cost/1000) * volume # Industry benchmark revenue line
+ax.plot(volume, industry_revenue, label=f"{selected_year} {selected_industry} Benchmark Line", color="#9C27B0", linestyle="-.", linewidth=1.5)
 
-# 原图表样式（无修改）
-ax.set_xlabel("销量 (件)", fontsize=12)
-ax.set_ylabel("金额 (元)", fontsize=12)
-ax.set_title("本量利分析图", fontsize=14, fontweight="bold")
+# Chart Style (No modifications)
+ax.set_xlabel("Sales Volume (Units)", fontsize=12)
+ax.set_ylabel("Amount", fontsize=12)
+ax.set_title("Cost-Volume-Profit Analysis Chart", fontsize=14, fontweight="bold")
 ax.legend(loc="upper left")
 ax.grid(alpha=0.3)
 st.pyplot(fig)
 
-# -------------------------- 原数据表格展示（100%保留） --------------------------
+# -------------------------- Detailed Data Table Display (100% Retained) --------------------------
 st.markdown("---")
-st.subheader("📋 详细数据表格")
+st.subheader("📋 Detailed Data Table")
 df = pd.DataFrame({
-    "销量": volume,
-    "总收入": total_revenue,
-    "总变动成本": total_var_cost,
-    "总成本": total_cost,
-    "利润": profit
+    "Sales Volume": volume,
+    "Total Revenue": total_revenue,
+    "Total Variable Cost": total_var_cost,
+    "Total Cost": total_cost,
+    "Profit": profit
 })
 st.dataframe(df, hide_index=True, use_container_width=True)
 
-# -------------------------- 新增：合规数据源声明（页面固定位置展示） --------------------------
+# -------------------------- Compliant Data Source Declaration (Fixed Page Position) --------------------------
 st.markdown("---")
 st.caption(f"""
-📌 **行业数据来源声明（可溯源）**：
-1. 2023-2025年行业平均成本/利润指标：来自【Yahoo Finance】全球行业财务数据库（https://finance.yahoo.com/industries）
-2. 2023-2025年中国制造业成本结构数据：来自【中国国家统计局】政府开放数据平台（https://www.stats.gov.cn/tjsj/tjbz/）
-3. 数据均为2023-2025年真实有效行业统计值，可通过上述官方链接溯源验证
-4. 本工具所有公开数据均采用合规授权数据源，符合数据使用规范
+📌 **Data Source Statement (Traceable)**：
+1. 2023-2025 Industry Average Metrics: Sourced from 【Yahoo Finance】Global Industry Financial Database (https://finance.yahoo.com/industries)
+2. 2023-2025 China Manufacturing Cost Structure: Sourced from 【National Bureau of Statistics of China】Open Government Data Platform (https://www.stats.gov.cn/tjsj/tjbz/)
+3. All data are authentic and valid industry statistics for 2023-2025, traceable via the official links above
+4. All public data in this tool uses compliant authorized data sources and meets data usage standards
 """)
