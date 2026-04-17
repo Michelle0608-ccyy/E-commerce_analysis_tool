@@ -57,7 +57,11 @@ cvp-analysis-tool/
 ```
 ## Author Information
 **Name**: Ziyou Liao
+
 **Student ID**: 2471574
+
 **Course Name**: ACC102
+
 **Major**: Accounting
+
 **Submission Date**: 23th, April 2026
