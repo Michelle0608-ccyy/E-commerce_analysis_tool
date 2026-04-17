@@ -128,7 +128,7 @@ gross_margin = ((unit_price - unit_var_cost)/unit_price)*100
 st.subheader("Company Metrics VS Industry Average (2023-2025)")
 col1, col2 = st.columns(2)
 with col1:
-    st.markdown("** Your Company Metrics**")
+    st.markdown(" Your Company Metrics")
     df_company = pd.DataFrame({
         "Metrics": ["Contribution Margin Ratio (%)", "Variable Cost Ratio (%)", "Fixed Cost to Revenue Ratio (%)", "Gross Profit Margin (%)"],
         "Value": [round(contribution_margin_ratio,2), round(var_cost_ratio,2), round(fixed_cost_ratio,2), round(gross_margin,2)]
@@ -136,7 +136,7 @@ with col1:
     st.dataframe(df_company, hide_index=True, use_container_width=True)
 
 with col2:
-    st.markdown(f"** {selected_year} {selected_industry} Industry Average**")
+    st.markdown(f" {selected_year} {selected_industry} Industry Average")
     df_industry = pd.DataFrame(industry_avg_data[selected_year][selected_industry], index=[selected_year])
     df_industry = df_industry.T.reset_index()
     df_industry.columns = ["Metrics", f"{selected_year} Industry Avg"]
