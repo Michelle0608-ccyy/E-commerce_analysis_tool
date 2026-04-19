@@ -24,6 +24,12 @@ Please make sure you have Python 3.8 or above installed on your device.
 1. Clone or download this repository to your local device
 2. Open the terminal (CMD) in the project folder, run the following command to install all required dependencies:
 ```bash
+cd Desktop
+```
+```bash
+cd cvp-analysis-tool
+```
+```bash
 pip install -r requirements.txt
 ```
 3. Run the application with the following command:
