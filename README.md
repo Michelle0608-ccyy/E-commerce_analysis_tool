@@ -99,7 +99,7 @@ Run the following commands in sequence (replace the folder path with your actual
 cd Desktop
 ```
 ```bash
-cd C:\Users\10675\Desktop\E-commerce_analysis
+cd C:\Users\10675\Desktop\E-commerce_analysis_tool-main
 ```
 #### Method 2 (Faster option for Windows):
 Open your project folder in File Explorer
